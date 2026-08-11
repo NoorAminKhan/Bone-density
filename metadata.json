@@ -1,0 +1,6 @@
+{
+  "name": "Bone Density Decay - Museum Kiosk Exhibit",
+  "description": "Interactive 55-inch vertical touchscreen museum exhibit simulating skeletal degradation in zero gravity with real-time biometric analysis and accessibility controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
