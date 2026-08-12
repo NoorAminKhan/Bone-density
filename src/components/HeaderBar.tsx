@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TRANSLATIONS } from '../data/exhibitData';
 import { LanguageCode } from '../types';
-import { Activity, Radio, ShieldCheck, Clock, Layers } from 'lucide-react';
+import { Activity, Radio, Clock, Layers } from 'lucide-react';
 
 interface HeaderBarProps {
   language: LanguageCode;
@@ -55,12 +55,6 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Active Simulation Status Badge */}
-          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-emerald-400 font-mono text-[11px]">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>55&quot; TOUCH KIOSK ACTIVE</span>
-          </div>
-
           {/* Quick Language Indicator Button */}
           <button
             onClick={onOpenLanguageModal}

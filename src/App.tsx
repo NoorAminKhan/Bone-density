@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { BiometricState, ViewMode, LanguageCode, AccessibilitySettings } from './types';
 import { TRANSLATIONS } from './data/exhibitData';
 import { speakText, stopSpeech, pauseSpeech, resumeSpeech, soundEngine } from './utils/audio';
@@ -69,37 +69,68 @@ export default function App() {
     };
   }, [biometricState.isPlaying, biometricState.playSpeed]);
 
-  // Start Narration Utility
-  const playVoiceNarration = (langCode: LanguageCode, rate: number = speechRate) => {
+  const speechTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const clearSpeechTimer = () => {
+    if (speechTimerRef.current) {
+      clearTimeout(speechTimerRef.current);
+      speechTimerRef.current = null;
+    }
+  };
+
+  // Stop Narration Utility
+  const stopVoiceNarration = () => {
+    clearSpeechTimer();
     stopSpeech();
+    setIsVoicePaused(false);
+    setIsOverlayDismissed(true);
+    setAccessibility(prev => ({ ...prev, voiceGuideActive: false }));
+  };
+
+  // Start Narration Utility (Ensures Pop-Up modal opens FIRST, then speech starts, and automatically closes on completion)
+  const playVoiceNarration = (langCode: LanguageCode, rate: number = speechRate, delayMs: number = 300) => {
+    stopSpeech();
+    clearSpeechTimer();
     setIsVoicePaused(false);
     setIsOverlayDismissed(false);
     setAccessibility(prev => ({ ...prev, voiceGuideActive: true }));
 
     const script = TRANSLATIONS[langCode].voiceGuideScript;
-    speakText(script, langCode, {
-      rate,
-      onEnd: () => {
-        setAccessibility(prev => ({ ...prev, voiceGuideActive: false }));
-        setIsVoicePaused(false);
-      },
-      onError: () => {
-        setAccessibility(prev => ({ ...prev, voiceGuideActive: false }));
-        setIsVoicePaused(false);
-      }
-    });
+
+    // Start speech after pop-up modal is rendered and visible on screen
+    speechTimerRef.current = setTimeout(() => {
+      speakText(script, langCode, {
+        rate,
+        onEnd: () => {
+          stopSpeech();
+          setIsVoicePaused(false);
+          setIsOverlayDismissed(true); // Automatically close pop-up when speech finishes reading completely
+          setAccessibility(prev => ({ ...prev, voiceGuideActive: false }));
+        },
+        onError: () => {
+          stopSpeech();
+          setIsVoicePaused(false);
+          setIsOverlayDismissed(true);
+          setAccessibility(prev => ({ ...prev, voiceGuideActive: false }));
+        }
+      });
+    }, delayMs);
   };
 
   // Toggle Voice Guide from button
   const handleToggleVoiceGuide = () => {
     soundEngine.playTouchBeep();
-    if (accessibility.voiceGuideActive) {
-      stopSpeech();
-      setAccessibility(prev => ({ ...prev, voiceGuideActive: false }));
-      setIsVoicePaused(false);
+    if (accessibility.voiceGuideActive && !isOverlayDismissed) {
+      stopVoiceNarration();
     } else {
-      playVoiceNarration(language, speechRate);
+      playVoiceNarration(language, speechRate, 300);
     }
+  };
+
+  // Close Voice Guide Overlay
+  const handleCloseVoiceOverlay = () => {
+    soundEngine.playTouchBeep();
+    stopVoiceNarration();
   };
 
   // Pause / Resume Speech Narration
@@ -117,7 +148,7 @@ export default function App() {
   // Replay Narration
   const handleReplayVoice = () => {
     soundEngine.playTouchBeep();
-    playVoiceNarration(language, speechRate);
+    playVoiceNarration(language, speechRate, 100);
   };
 
   // Speech Speed Adjustment
@@ -125,14 +156,13 @@ export default function App() {
     soundEngine.playTouchBeep();
     setSpeechRate(newRate);
     if (accessibility.voiceGuideActive) {
-      playVoiceNarration(language, newRate);
+      playVoiceNarration(language, newRate, 100);
     }
   };
 
   // Reset function
   const handleReset = () => {
-    stopSpeech();
-    setIsVoicePaused(false);
+    stopVoiceNarration();
     setBiometricState({
       daysInSpace: 0,
       viewMode: 'femur',
@@ -142,7 +172,6 @@ export default function App() {
       playSpeed: 1,
       inspectedHotspot: null
     });
-    setAccessibility(prev => ({ ...prev, voiceGuideActive: false }));
   };
 
   // Preset Scenario Applicator
@@ -191,6 +220,7 @@ export default function App() {
               language={language}
               onSelectViewMode={(mode) => setBiometricState(prev => ({ ...prev, viewMode: mode }))}
               onSelectHotspot={(spot) => setBiometricState(prev => ({ ...prev, inspectedHotspot: spot }))}
+              onChangeDays={(days) => setBiometricState(prev => ({ ...prev, daysInSpace: days }))}
             />
 
             {/* HORIZONTAL BIOMETRIC SLIDER CONTROL */}
@@ -262,7 +292,7 @@ export default function App() {
             onPauseResume={handlePauseResumeVoice}
             onReplay={handleReplayVoice}
             onChangeRate={handleChangeSpeechRate}
-            onClose={() => setIsOverlayDismissed(true)}
+            onClose={handleCloseVoiceOverlay}
           />
         )}
       </div>

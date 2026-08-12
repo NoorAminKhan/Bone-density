@@ -97,6 +97,7 @@ export const soundEngine = new SoundEngine();
 
 // Enhanced Speech Synthesis Voice Engine
 let cachedVoices: SpeechSynthesisVoice[] = [];
+let currentUtterance: SpeechSynthesisUtterance | null = null;
 
 if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
   const updateVoices = () => {
@@ -165,7 +166,8 @@ export function speakText(
     return null;
   }
 
-  window.speechSynthesis.cancel(); // Stop current playing speech
+  // Stop any ongoing speech and release reference
+  stopSpeech();
 
   const opts: SpeakOptions = typeof options === 'function' ? { onEnd: options } : options;
 
@@ -187,15 +189,18 @@ export function speakText(
   }
 
   const handleEnd = () => {
+    currentUtterance = null;
     if (opts.onEnd) opts.onEnd();
   };
 
   utterance.onend = handleEnd;
   utterance.onerror = () => {
+    currentUtterance = null;
     if (opts.onError) opts.onError();
     else handleEnd();
   };
 
+  currentUtterance = utterance;
   window.speechSynthesis.speak(utterance);
   return utterance;
 }
@@ -213,6 +218,7 @@ export function resumeSpeech() {
 }
 
 export function stopSpeech() {
+  currentUtterance = null;
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     window.speechSynthesis.cancel();
   }

@@ -60,11 +60,11 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
         </div>
 
         {/* Report Card Summary Box */}
-        <div className="p-4 rounded-2xl bg-slate-950/90 border border-cyan-500/30 flex flex-col gap-3 font-sans">
+        <div className="p-4 rounded-2xl bg-slate-950/90 border border-cyan-500/30 flex flex-col gap-3 font-sans max-h-[380px] overflow-y-auto custom-scrollbar">
           <div className="flex items-center justify-between border-b border-slate-800 pb-2">
             <div>
               <span className="text-[10px] font-orbitron text-cyan-400 block">NASA ISS EXHIBIT BIO-904</span>
-              <h3 className="font-orbitron font-bold text-sm text-white">SKELETAL DECAY REPORT</h3>
+              <h3 className="font-orbitron font-bold text-sm text-white">2-PAGE FULL MEDICAL REPORT</h3>
             </div>
             <Award className="w-6 h-6 text-amber-400" />
           </div>
@@ -87,6 +87,37 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
               <strong className={state.exerciseCountermeasures ? 'text-emerald-400' : 'text-rose-400'}>
                 {state.exerciseCountermeasures ? 'ACTIVE (+40%)' : 'OFF (-34%)'}
               </strong>
+            </div>
+          </div>
+
+          {/* Section Highlights */}
+          <div className="p-2.5 rounded bg-slate-900/80 border border-slate-800 text-xs text-slate-300 flex flex-col gap-1">
+            <span className="text-[10px] font-orbitron text-cyan-400 font-bold block">INCLUDED REPORT SECTIONS:</span>
+            <div className="grid grid-cols-1 gap-1 text-[11px]">
+              <div className="flex items-center gap-1.5 text-cyan-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span>1. Mission Parameters & Microgravity Loading</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-cyan-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span>2. Femoral & Spine BMD T-Score Risk Index</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-cyan-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span>3. Anatomical Breakdown (Femur, L3 Spine, Calcaneus)</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-cyan-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span>4. Osteoclast vs Osteoblast Cellular Activity Ratio</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-cyan-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span>5. Post-Landing Terrestrial 1G Rehabilitation Plan</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-cyan-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span>6. 24-Month Recovery Projection Table</span>
+              </div>
             </div>
           </div>
 

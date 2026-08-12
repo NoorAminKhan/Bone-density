@@ -9,13 +9,15 @@ interface AnatomicalViewerProps {
   language: LanguageCode;
   onSelectViewMode: (mode: ViewMode) => void;
   onSelectHotspot: (hotspotId: string | null) => void;
+  onChangeDays?: (days: number) => void;
 }
 
 export const AnatomicalViewer: React.FC<AnatomicalViewerProps> = ({
   state,
   language,
   onSelectViewMode,
-  onSelectHotspot
+  onSelectHotspot,
+  onChangeDays
 }) => {
   const t = TRANSLATIONS[language];
   const days = state.daysInSpace;
@@ -49,9 +51,9 @@ export const AnatomicalViewer: React.FC<AnatomicalViewerProps> = ({
   };
 
   return (
-    <div className={`relative flex flex-col items-center justify-between w-full h-full p-4 rounded-2xl glass-panel transition-all duration-500 ${glowClass}`}>
+    <div className={`relative flex flex-col items-center justify-between w-full h-full p-3.5 sm:p-5 rounded-2xl glass-panel transition-all duration-500 ${glowClass}`}>
       {/* Top View Mode Selector Tabs */}
-      <div className="flex flex-wrap items-center justify-center gap-2 w-full z-10 mb-2">
+      <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 w-full z-10 mb-1">
         {(['femur', 'skeleton', 'vertebrae', 'cellular'] as ViewMode[]).map((mode) => (
           <button
             key={mode}
@@ -59,124 +61,155 @@ export const AnatomicalViewer: React.FC<AnatomicalViewerProps> = ({
               soundEngine.playTouchBeep();
               onSelectViewMode(mode);
             }}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-rajdhani font-bold tracking-wider transition-all duration-200 active:scale-95 ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-rajdhani font-bold tracking-wider transition-all duration-200 active:scale-95 cursor-pointer ${
               state.viewMode === mode
                 ? 'bg-cyan-500/30 border border-cyan-400 text-cyan-200 shadow-[0_0_15px_rgba(0,240,255,0.3)]'
                 : 'bg-slate-900/60 border border-slate-700/50 text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
             }`}
           >
-            <Layers className="w-3.5 h-3.5" />
+            <Layers className="w-3.5 h-3.5 text-cyan-400" />
             <span>{t.views[mode]}</span>
           </button>
         ))}
       </div>
 
       {/* Main Anatomical SVG Canvas Area */}
-      <div className="relative w-full flex-1 min-h-[300px] max-h-[520px] flex items-center justify-center overflow-hidden my-2">
-        {/* Background Radial Scan Grid */}
+      <div className="relative w-full flex-1 min-h-[340px] max-h-[540px] flex items-center justify-center overflow-hidden my-1">
+        {/* Background Radial Scan Grid & Subtle Radar Circles */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20">
-          <circle cx="50%" cy="50%" r="40%" fill="none" stroke={strokePrimary} strokeWidth="1" strokeDasharray="4 4" />
-          <circle cx="50%" cy="50%" r="25%" fill="none" stroke={strokePrimary} strokeWidth="1" strokeDasharray="2 2" />
+          <circle cx="50%" cy="50%" r="42%" fill="none" stroke={strokePrimary} strokeWidth="1" strokeDasharray="4 4" />
+          <circle cx="50%" cy="50%" r="26%" fill="none" stroke={strokePrimary} strokeWidth="1" strokeDasharray="2 2" />
+          <circle cx="50%" cy="50%" r="10%" fill="none" stroke={strokePrimary} strokeWidth="0.5" />
           <line x1="50%" y1="0" x2="50%" y2="100%" stroke={strokePrimary} strokeWidth="0.5" strokeDasharray="5 5" />
           <line x1="0" y1="50%" x2="100%" y2="50%" stroke={strokePrimary} strokeWidth="0.5" strokeDasharray="5 5" />
         </svg>
 
         {/* 1. FEMUR CROSS-SECTION VIEW */}
         {state.viewMode === 'femur' && (
-          <svg viewBox="0 0 400 500" className="w-full h-full max-h-[480px] drop-shadow-[0_0_20px_rgba(0,240,255,0.3)]">
-            <defs>
-              <linearGradient id="femurGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor={strokePrimary} stopOpacity="0.9" />
-                <stop offset="50%" stopColor="#ffffff" stopOpacity="0.8" />
-                <stop offset="100%" stopColor={strokePrimary} stopOpacity="0.4" />
-              </linearGradient>
+          <div className="w-full h-full flex flex-col items-center justify-center py-1">
+            {/* Primary Active Femur Bone with Dotted Anatomical Leader Lines */}
+            <div className="relative w-full flex-1 max-h-[480px] flex items-center justify-center">
+              <svg viewBox="0 0 500 360" className="w-full h-full max-w-[520px] drop-shadow-[0_0_25px_rgba(0,240,255,0.25)]">
+                <defs>
+                  <linearGradient id="primaryFemurGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={strokePrimary} stopOpacity="0.9" />
+                    <stop offset="50%" stopColor="#ffffff" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor={strokePrimary} stopOpacity="0.3" />
+                  </linearGradient>
+                </defs>
 
-              <pattern id="trabecularPatternDense" width="20" height="20" patternUnits="userSpaceOnUse">
-                <path d="M 0 10 Q 10 0 20 10 Q 10 20 0 10 Z" fill="none" stroke={strokePrimary} strokeWidth="1.5" opacity="0.8" />
-                <circle cx="10" cy="10" r="2" fill={strokePrimary} opacity="0.6" />
-                <line x1="0" y1="0" x2="20" y2="20" stroke={strokePrimary} strokeWidth="1" opacity="0.5" />
-              </pattern>
-            </defs>
+                {/* Main Centered Detailed Femur Silhouette */}
+                <g transform="translate(205, 10)">
+                  {/* Outer Cortical Shell */}
+                  <path
+                    d="M 65 14 C 78 14, 88 24, 84 38 C 80 48, 72 58, 68 64 C 74 72, 76 78, 70 85 C 64 120, 62 180, 65 240 C 68 270, 82 290, 85 315 C 85 330, 72 340, 58 338 C 52 334, 48 322, 45 322 C 42 322, 38 334, 32 338 C 18 340, 5 330, 5 315 C 8 290, 22 270, 25 240 C 28 180, 26 120, 22 85 C 15 75, 10 58, 14 42 C 18 28, 30 22, 42 28 C 48 32, 52 14, 65 14 Z"
+                    fill="rgba(5, 15, 35, 0.8)"
+                    stroke={strokePrimary}
+                    strokeWidth="3"
+                    className="transition-colors duration-500"
+                  />
 
-            {/* Femur Outer Cortical Shell Contour */}
-            <path
-              d="M 180,60 C 130,70 100,120 120,170 C 140,200 160,240 165,330 C 170,390 140,430 160,450 C 180,470 230,460 240,440 C 250,420 230,370 235,310 C 240,240 260,200 280,160 C 300,120 260,60 210,60 Z"
-              fill="rgba(5, 15, 35, 0.7)"
-              stroke={strokePrimary}
-              strokeWidth="4"
-              className="transition-colors duration-500"
-            />
+                  {/* Dense Inner Cortical Border Line */}
+                  <path
+                    d="M 65 14 C 78 14, 88 24, 84 38 C 80 48, 72 58, 68 64 C 74 72, 76 78, 70 85 C 64 120, 62 180, 65 240 C 68 270, 82 290, 85 315 C 85 330, 72 340, 58 338 C 52 334, 48 322, 45 322 C 42 322, 38 334, 32 338 C 18 340, 5 330, 5 315 C 8 290, 22 270, 25 240 C 28 180, 26 120, 22 85 C 15 75, 10 58, 14 42 C 18 28, 30 22, 42 28 C 48 32, 52 14, 65 14 Z"
+                    fill="none"
+                    stroke="#ffffff"
+                    strokeWidth="1.5"
+                    opacity="0.6"
+                  />
 
-            {/* Dense Outer Cortical Layer */}
-            <path
-              d="M 180,60 C 130,70 100,120 120,170 C 140,200 160,240 165,330 C 170,390 140,430 160,450 C 180,470 230,460 240,440 C 250,420 230,370 235,310 C 240,240 260,200 280,160 C 300,120 260,60 210,60 Z"
-              fill="none"
-              stroke="#ffffff"
-              strokeWidth="2"
-              opacity="0.6"
-            />
-
-            {/* Trabecular Spongy Lattice Center (Pores enlarge as decay increases) */}
-            <g opacity={Math.max(0.15, 1 - decayFactor * 0.85)} className="transition-opacity duration-500">
-              <path
-                d="M 170,90 C 140,110 130,140 145,170 C 160,195 180,240 182,320 C 185,370 170,410 180,425 C 190,435 210,430 215,420 C 220,405 210,370 212,310 C 215,240 235,200 245,170 C 255,140 230,90 195,90 Z"
-                fill="url(#femurGlow)"
-                opacity="0.35"
-              />
-
-              {/* Procedural Lattice Lines simulating bone trabeculae */}
-              {Array.from({ length: 24 }).map((_, i) => {
-                const yPos = 100 + i * 14;
-                const spread = Math.sin((i / 24) * Math.PI) * 45 + 15;
-                const opacityVal = Math.max(0.1, 1 - decayFactor * (i % 3 === 0 ? 0.9 : 0.6));
-                return (
-                  <g key={i} opacity={opacityVal}>
-                    <line
-                      x1={200 - spread}
-                      y1={yPos}
-                      x2={200 + spread}
-                      y2={yPos + (i % 2 === 0 ? 6 : -6)}
-                      stroke={strokePrimary}
-                      strokeWidth={Math.max(0.8, 2.5 - decayFactor * 1.8)}
-                    />
-                    <line
-                      x1={200 - spread * 0.5}
-                      y1={yPos - 5}
-                      x2={200 + spread * 0.5}
-                      y2={yPos + 8}
-                      stroke="#ffffff"
-                      strokeWidth={Math.max(0.5, 2 - decayFactor * 1.5)}
-                      opacity="0.7"
-                    />
+                  {/* Trabecular Cross-Section Lattice Internal Pattern */}
+                  <g opacity={Math.max(0.18, 1 - decayFactor * 0.82)} className="transition-opacity duration-500">
+                    {/* Head & Neck Spongy Lattice */}
+                    {Array.from({ length: 18 }).map((_, i) => {
+                      const yPos = 25 + i * 16;
+                      const widthVal = Math.sin((i / 18) * Math.PI) * 35 + 10;
+                      return (
+                        <g key={i}>
+                          <line
+                            x1={45 - widthVal * 0.6}
+                            y1={yPos}
+                            x2={45 + widthVal * 0.6}
+                            y2={yPos + (i % 2 === 0 ? 5 : -5)}
+                            stroke={strokePrimary}
+                            strokeWidth={Math.max(0.7, 2.2 - decayFactor * 1.6)}
+                          />
+                          <line
+                            x1={45 - widthVal * 0.3}
+                            y1={yPos - 4}
+                            x2={45 + widthVal * 0.3}
+                            y2={yPos + 6}
+                            stroke="#ffffff"
+                            strokeWidth={Math.max(0.4, 1.6 - decayFactor * 1.2)}
+                            opacity="0.7"
+                          />
+                        </g>
+                      );
+                    })}
                   </g>
-                );
-              })}
-            </g>
 
-            {/* Micro-fracture Risk Glow Spots (Appears under high decay) */}
-            {decayFactor > 0.4 && (
-              <g className="animate-pulse">
-                {/* Femoral Neck Vulnerability Zone */}
-                <circle cx="160" cy="140" r={12 + decayFactor * 14} fill="rgba(255,51,102,0.25)" stroke="#ff3366" strokeWidth="1.5" />
-                <path d="M 152 135 L 168 145 M 160 130 L 160 150" stroke="#ff3366" strokeWidth="2" />
-                <text x="175" y="132" fill="#ff3366" fontSize="10" fontFamily="Orbitron" fontWeight="bold">
-                  HIGH DECAY ZONE
-                </text>
-                <text x="175" y="145" fill="#ffffff" fontSize="9" fontFamily="Rajdhani">
-                  33.6% Porosity Increase
-                </text>
-              </g>
-            )}
+                  {/* High Decay Micro-Crack Vulnerability Glow */}
+                  {decayFactor > 0.35 && (
+                    <g className="animate-pulse">
+                      <circle cx="58" cy="52" r={10 + decayFactor * 12} fill="rgba(255,51,102,0.3)" stroke="#ff3366" strokeWidth="1.5" />
+                      <path d="M 52 48 L 64 56 M 58 44 L 58 60" stroke="#ff3366" strokeWidth="2" />
+                    </g>
+                  )}
+                </g>
 
-            {/* Dimension Callouts & Anatomical Markers */}
-            <line x1="80" y1="120" x2="140" y2="120" stroke="#00f0ff" strokeWidth="1" strokeDasharray="2 2" />
-            <circle cx="140" cy="120" r="3" fill="#00f0ff" />
-            <text x="25" y="124" fill="#00f0ff" fontSize="10" fontFamily="Orbitron">FEMORAL HEAD</text>
+                {/* Dotted Leader Lines & Anatomical Labels */}
+                {/* 1. Femoral Head */}
+                <g>
+                  <line x1="80" y1="32" x2="275" y2="32" stroke="#00f0ff" strokeWidth="1" strokeDasharray="3 3" />
+                  <circle cx="275" cy="32" r="3.5" fill="#00f0ff" />
+                  <rect x="5" y="22" width="110" height="20" rx="4" fill="rgba(2, 8, 22, 0.9)" stroke="#00f0ff" strokeWidth="1" />
+                  <text x="60" y="35" fill="#00f0ff" fontSize="9" fontFamily="Orbitron" textAnchor="middle" fontWeight="bold">
+                    FEMORAL HEAD
+                  </text>
+                </g>
 
-            <line x1="260" y1="300" x2="320" y2="300" stroke="#00f0ff" strokeWidth="1" strokeDasharray="2 2" />
-            <circle cx="260" cy="300" r="3" fill="#00f0ff" />
-            <text x="325" y="304" fill="#00f0ff" fontSize="10" fontFamily="Orbitron">MEDULLARY CANAL</text>
-          </svg>
+                {/* 2. Greater Trochanter */}
+                <g>
+                  <line x1="80" y1="62" x2="220" y2="62" stroke="#00f0ff" strokeWidth="1" strokeDasharray="3 3" />
+                  <circle cx="220" cy="62" r="3.5" fill="#00f0ff" />
+                  <rect x="5" y="52" width="125" height="20" rx="4" fill="rgba(2, 8, 22, 0.9)" stroke="#00f0ff" strokeWidth="1" />
+                  <text x="67.5" y="65" fill="#00f0ff" fontSize="9" fontFamily="Orbitron" textAnchor="middle" fontWeight="bold">
+                    GREATER TROCHANTER
+                  </text>
+                </g>
+
+                {/* 3. Femoral Neck */}
+                <g>
+                  <line x1="420" y1="75" x2="263" y2="75" stroke="#00f0ff" strokeWidth="1" strokeDasharray="3 3" />
+                  <circle cx="263" cy="75" r="3.5" fill="#00f0ff" />
+                  <rect x="380" y="65" width="115" height="20" rx="4" fill="rgba(2, 8, 22, 0.9)" stroke="#00f0ff" strokeWidth="1" />
+                  <text x="437.5" y="78" fill="#00f0ff" fontSize="9" fontFamily="Orbitron" textAnchor="middle" fontWeight="bold">
+                    FEMORAL NECK
+                  </text>
+                </g>
+
+                {/* 4. Medullary Canal */}
+                <g>
+                  <line x1="420" y1="190" x2="250" y2="190" stroke="#00f0ff" strokeWidth="1" strokeDasharray="3 3" />
+                  <circle cx="250" cy="190" r="3.5" fill="#00f0ff" />
+                  <rect x="375" y="180" width="120" height="20" rx="4" fill="rgba(2, 8, 22, 0.9)" stroke="#00f0ff" strokeWidth="1" />
+                  <text x="435" y="193" fill="#00f0ff" fontSize="9" fontFamily="Orbitron" textAnchor="middle" fontWeight="bold">
+                    MEDULLARY CANAL
+                  </text>
+                </g>
+
+                {/* 5. Femoral Condyles */}
+                <g>
+                  <line x1="80" y1="330" x2="250" y2="330" stroke="#00f0ff" strokeWidth="1" strokeDasharray="3 3" />
+                  <circle cx="250" cy="330" r="3.5" fill="#00f0ff" />
+                  <rect x="5" y="320" width="125" height="20" rx="4" fill="rgba(2, 8, 22, 0.9)" stroke="#00f0ff" strokeWidth="1" />
+                  <text x="67.5" y="333" fill="#00f0ff" fontSize="9" fontFamily="Orbitron" textAnchor="middle" fontWeight="bold">
+                    FEMORAL CONDYLES
+                  </text>
+                </g>
+              </svg>
+            </div>
+          </div>
         )}
 
         {/* 2. FULL SKELETON HEATMAP VIEW */}
