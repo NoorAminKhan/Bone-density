@@ -91,6 +91,78 @@ class SoundEngine {
       // Fallback
     }
   }
+
+  // Rocket Ignition and Launch Sound Synthesizer
+  playRocketLaunch() {
+    try {
+      this.initCtx();
+      if (!this.ctx) return;
+
+      const now = this.ctx.currentTime;
+
+      // 1. Initial Ignition Click & Charging Tone
+      const chime = this.ctx.createOscillator();
+      const chimeGain = this.ctx.createGain();
+      chime.type = 'sine';
+      chime.frequency.setValueAtTime(440, now);
+      chime.frequency.exponentialRampToValueAtTime(1320, now + 0.25);
+      chimeGain.gain.setValueAtTime(0.2, now);
+      chimeGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+      chime.connect(chimeGain);
+      chimeGain.connect(this.ctx.destination);
+      chime.start(now);
+      chime.stop(now + 0.3);
+
+      // 2. Heavy Rocket Thruster Rumble (Low Frequency Noise Buffer + Filter)
+      const bufferSize = this.ctx.sampleRate * 2.0; // 2 seconds of sound
+      const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+
+      const whiteNoise = this.ctx.createBufferSource();
+      whiteNoise.buffer = noiseBuffer;
+
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(100, now);
+      filter.frequency.exponentialRampToValueAtTime(800, now + 1.2);
+      filter.frequency.exponentialRampToValueAtTime(200, now + 2.0);
+
+      const noiseGain = this.ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.01, now);
+      noiseGain.gain.linearRampToValueAtTime(0.3, now + 0.4);
+      noiseGain.gain.linearRampToValueAtTime(0.35, now + 1.2);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+
+      whiteNoise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(this.ctx.destination);
+
+      whiteNoise.start(now);
+      whiteNoise.stop(now + 2.0);
+
+      // 3. Ascending High-Velocity Whoosh & Sonic Warp
+      const whooshOsc = this.ctx.createOscillator();
+      const whooshGain = this.ctx.createGain();
+      whooshOsc.type = 'sawtooth';
+      whooshOsc.frequency.setValueAtTime(60, now + 0.1);
+      whooshOsc.frequency.exponentialRampToValueAtTime(480, now + 1.5);
+
+      whooshGain.gain.setValueAtTime(0.02, now + 0.1);
+      whooshGain.gain.linearRampToValueAtTime(0.15, now + 0.8);
+      whooshGain.gain.exponentialRampToValueAtTime(0.001, now + 1.9);
+
+      whooshOsc.connect(whooshGain);
+      whooshGain.connect(this.ctx.destination);
+
+      whooshOsc.start(now + 0.1);
+      whooshOsc.stop(now + 1.9);
+    } catch {
+      // Audio fallback
+    }
+  }
 }
 
 export const soundEngine = new SoundEngine();

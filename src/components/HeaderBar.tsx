@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { TRANSLATIONS } from '../data/exhibitData';
 import { LanguageCode } from '../types';
-import { Activity, Radio, Clock, Layers } from 'lucide-react';
+import { Activity, Radio, Clock, Layers, Rocket } from 'lucide-react';
+import { soundEngine } from '../utils/audio';
 
 interface HeaderBarProps {
   language: LanguageCode;
   onOpenLanguageModal: () => void;
   daysInSpace: number;
+  onReturnHome?: () => void;
 }
 
 export const HeaderBar: React.FC<HeaderBarProps> = ({
   language,
   onOpenLanguageModal,
-  daysInSpace
+  daysInSpace,
+  onReturnHome
 }) => {
   const t = TRANSLATIONS[language];
   const [missionSeconds, setMissionSeconds] = useState(0);
@@ -54,11 +57,26 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* Return to Launch Screen Button */}
+          {onReturnHome && (
+            <button
+              onClick={() => {
+                soundEngine.playTouchBeep();
+                onReturnHome();
+              }}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-slate-900/80 hover:bg-cyan-950 border border-cyan-500/40 text-cyan-300 text-xs font-semibold tracking-wider transition-all duration-200 active:scale-95 cursor-pointer shadow-[0_0_10px_rgba(0,240,255,0.2)]"
+              aria-label="Return to Launch Screen"
+            >
+              <Rocket className="w-3.5 h-3.5 text-cyan-400" />
+              <span>LAUNCH SCREEN</span>
+            </button>
+          )}
+
           {/* Quick Language Indicator Button */}
           <button
             onClick={onOpenLanguageModal}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-cyan-900/30 hover:bg-cyan-800/40 border border-cyan-500/30 text-cyan-200 text-xs font-semibold tracking-wider transition-all duration-200 active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-cyan-900/30 hover:bg-cyan-800/40 border border-cyan-500/30 text-cyan-200 text-xs font-semibold tracking-wider transition-all duration-200 active:scale-95 cursor-pointer"
             aria-label="Change Exhibit Language"
           >
             <span className="uppercase text-cyan-400 font-bold">{language}</span>

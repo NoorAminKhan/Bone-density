@@ -15,8 +15,12 @@ import { AccessibilityModal } from './components/AccessibilityModal';
 import { QRCodeModal } from './components/QRCodeModal';
 import { VoiceGuideOverlay } from './components/VoiceGuideOverlay';
 import { KioskFrameWrapper } from './components/KioskFrameWrapper';
+import { WelcomeScreen } from './components/WelcomeScreen';
 
 export default function App() {
+  // Attract / Opening Screen Mode
+  const [isWelcomeScreenActive, setIsWelcomeScreenActive] = useState(true);
+
   // Biometric Simulation State
   const [biometricState, setBiometricState] = useState<BiometricState>({
     daysInSpace: 0,
@@ -188,6 +192,20 @@ export default function App() {
   // Calculate current decay ratio for background and visual tint
   const decayRatio = Math.min(1.0, biometricState.daysInSpace / 730);
 
+  if (isWelcomeScreenActive) {
+    return (
+      <KioskFrameWrapper
+        highContrast={accessibility.highContrast}
+        onApplyScenario={handleApplyScenario}
+      >
+        <WelcomeScreen
+          language={language}
+          onBegin={() => setIsWelcomeScreenActive(false)}
+        />
+      </KioskFrameWrapper>
+    );
+  }
+
   return (
     <KioskFrameWrapper
       highContrast={accessibility.highContrast}
@@ -209,6 +227,10 @@ export default function App() {
           language={language}
           onOpenLanguageModal={() => setIsLangModalOpen(true)}
           daysInSpace={biometricState.daysInSpace}
+          onReturnHome={() => {
+            stopVoiceNarration();
+            setIsWelcomeScreenActive(true);
+          }}
         />
 
         {/* MAIN EXHIBIT CONTENT BODY (Responsive Portrait Grid) */}
